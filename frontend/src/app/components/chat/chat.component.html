@@ -1,0 +1,100 @@
+<div class="chat-container">
+  <div class="chat-header glass">
+    <h2>Ask Questions</h2>
+    <div class="current-topic" *ngIf="currentTopic">
+      <span>Current Topic:</span>
+      <strong>{{ currentTopic }}</strong>
+    </div>
+  </div>
+
+  <div class="chat-content">
+    <div class="collections-panel glass-light">
+      <h3>Available Collections</h3>
+      <div *ngIf="collections.length === 0" class="no-collections">
+        <p>No collections available. Please search for papers first.</p>
+        <button (click)="navigateToSearch()" class="btn-primary glass-light">
+          Search Papers
+        </button>
+      </div>
+      <div *ngIf="collections.length > 0" class="collections-list">
+        <div 
+          *ngFor="let collection of collections" 
+          [class.active]="collection === selectedCollection"
+          (click)="selectCollection(collection)"
+          class="collection-item glass">
+          {{ collection }}
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-panel glass-light">
+      <div class="mode-selector">
+        <button 
+          *ngFor="let m of modes"
+          [class.active]="mode === m.value"
+          (click)="mode = m.value"
+          class="mode-btn glass">
+          {{ m.label }}
+        </button>
+      </div>
+
+      <div class="messages-container" #messagesContainer>
+        <div *ngIf="messages.length === 0" class="welcome-message">
+          <h3>Welcome to the Research Assistant</h3>
+          <p>Select a collection and ask questions about the research papers.</p>
+          <div class="example-questions">
+            <p><strong>Try asking:</strong></p>
+            <ul>
+              <li>What are the main findings in these papers?</li>
+              <li>How do these papers compare in their methodologies?</li>
+              <li>What research gaps exist in this area?</li>
+              <li>Can you summarize the key contributions?</li>
+            </ul>
+          </div>
+        </div>
+
+        <div *ngFor="let message of messages" [class]="'message ' + message.type + ' fade-in'">
+          <div class="message-content" [class.glass]="message.type === 'user'" [class.glass-dark]="message.type === 'ai'">
+            <div class="message-header">
+              <span class="message-sender">{{ message.type === 'user' ? 'You' : 'AI Assistant' }}</span>
+            </div>
+            <div class="message-text">{{ message.text }}</div>
+            <div *ngIf="message.sources && message.sources.length > 0" class="message-sources">
+              <p><strong>Sources:</strong></p>
+              <div *ngFor="let source of message.sources; let i = index" class="source-item">
+                <strong>Source {{ i + 1 }}:</strong> {{ source.metadata.title }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="loading" class="message ai fade-in">
+          <div class="message-content glass-dark">
+            <div class="typing-indicator">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-area">
+        <textarea
+          [(ngModel)]="question"
+          placeholder="Ask a question about the papers..."
+          class="question-input glass"
+          rows="3"
+          (keyup.enter)="!$event.shiftKey && onAsk()"
+          [disabled]="loading || !selectedCollection"
+        ></textarea>
+        <button 
+          (click)="onAsk()" 
+          [disabled]="loading || !question.trim() || !selectedCollection"
+          class="btn-send glass-light">
+          Send
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

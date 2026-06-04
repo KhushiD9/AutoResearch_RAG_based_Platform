@@ -1,0 +1,91 @@
+<div class="search-container">
+  <div class="search-box glass fade-in">
+    <h2>Discover Research Papers</h2>
+    <p class="subtitle">Enter a research topic to find and analyze relevant papers</p>
+
+    <div class="search-form">
+      <div class="form-group">
+        <label>Research Topic</label>
+        <input
+          type="text"
+          [(ngModel)]="topic"
+          placeholder="e.g., anti-pinch controller, machine learning, quantum computing"
+          class="input-field glass-light"
+          (keyup.enter)="onSearch()"
+          [disabled]="loading"
+        />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Number of Papers</label>
+          <select [(ngModel)]="limit" class="select-field glass-light" [disabled]="loading">
+            <option [value]="3">3 papers</option>
+            <option [value]="5">5 papers</option>
+            <option [value]="10">10 papers</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>AI Provider</label>
+          <select [(ngModel)]="provider" class="select-field glass-light" [disabled]="loading">
+            <option value="gemini">Gemini</option>
+            <option value="openai">OpenAI</option>
+          </select>
+        </div>
+      </div>
+
+      <button 
+        (click)="onSearch()" 
+        [disabled]="loading || !topic.trim()"
+        class="btn-primary glass-light">
+        {{ loading ? 'Searching...' : 'Search Papers' }}
+      </button>
+    </div>
+
+    <div *ngIf="error" class="error-message glass-dark slide-in">
+      {{ error }}
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="fade-in">
+    <app-loader [message]="'Discovering and processing papers...'"></app-loader>
+  </div>
+
+  <div *ngIf="result && !loading" class="results-container fade-in">
+    <div class="result-summary glass">
+      <h3>Search Results</h3>
+      <div class="summary-stats">
+        <div class="stat-item">
+          <span class="stat-value">{{ result.papers_found }}</span>
+          <span class="stat-label">Papers Found</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">{{ result.papers_processed }}</span>
+          <span class="stat-label">Papers Processed</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">{{ result.collection_name }}</span>
+          <span class="stat-label">Collection ID</span>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="result.processed_papers && result.processed_papers.length > 0" class="papers-list">
+      <h3>Processed Papers</h3>
+      <div *ngFor="let paper of result.processed_papers" class="paper-card glass-light slide-in">
+        <h4>{{ paper.title }}</h4>
+        <p class="chunk-info">{{ paper.chunks_count }} text chunks indexed</p>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button (click)="navigateToChat()" class="btn-primary glass-light">
+        Ask Questions About These Papers
+      </button>
+      <button (click)="resetSearch()" class="btn-secondary glass-light">
+        Search New Topic
+      </button>
+    </div>
+  </div>
+</div>
