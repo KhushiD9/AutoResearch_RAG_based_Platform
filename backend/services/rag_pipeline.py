@@ -24,9 +24,15 @@ class RAGPipeline:
         papers = await self.paper_discovery.search_papers(topic, limit)
         
         if not papers:
+            if self.paper_discovery.rate_limited:
+                return {
+                    "success": False,
+                    "error": "Paper search APIs are temporarily rate-limited. Please wait a minute and try again.",
+                    "papers_processed": 0
+                }
             return {
                 "success": False,
-                "error": "No papers found for the given topic",
+                "error": "No papers found for the given topic. Try a different search term.",
                 "papers_processed": 0
             }
         
@@ -40,18 +46,24 @@ class RAGPipeline:
             try:
                 logger.info(f"Processing paper: {paper['title']}")
                 
-                if not paper.get('pdf_url'):
-                    logger.warning(f"No PDF URL for paper: {paper['title']}")
+                chunks = []
+                if paper.get('pdf_url'):
+                    result = await self.pdf_processor.process_pdf(paper['pdf_url'])
+                    if result['success']:
+                        chunks = result['chunks']
+                    else:
+                        logger.warning(f"Failed to process PDF: {paper['title']}")
+                
+                if not chunks and paper.get('abstract'):
+                    chunks = [{
+                        "chunk_id": 0,
+                        "text": paper['abstract']
+                    }]
+                    logger.info(f"Using abstract for paper: {paper['title']}")
+                
+                if not chunks:
+                    logger.warning(f"No content available for paper: {paper['title']}")
                     continue
-                
-                # Download and extract text
-                result = await self.pdf_processor.process_pdf(paper['pdf_url'])
-                
-                if not result['success']:
-                    logger.warning(f"Failed to process PDF: {paper['title']}")
-                    continue
-                
-                chunks = result['chunks']
                 
                 # Generate embeddings
                 texts = [chunk['text'] for chunk in chunks]

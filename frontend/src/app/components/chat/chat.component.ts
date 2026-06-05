@@ -79,6 +79,13 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     this.messages = [];
   }
 
+  onEnterKey(event: Event) {
+    const keyboardEvent = event as KeyboardEvent;
+    if (!keyboardEvent.shiftKey) {
+      this.onAsk();
+    }
+  }
+
   onAsk() {
     if (!this.question.trim() || !this.selectedCollection || this.loading) {
       return;
@@ -95,8 +102,7 @@ export class ChatComponent implements OnInit, AfterViewChecked {
       collection_name: this.selectedCollection,
       question: this.question,
       n_results: 5,
-      mode: this.mode,
-      provider: 'gemini'
+      mode: this.mode
     };
 
     const currentQuestion = this.question;

@@ -11,7 +11,6 @@ import { StateService } from '../../services/state.service';
 export class SearchComponent {
   topic: string = '';
   limit: number = 5;
-  provider: string = 'gemini';
   loading: boolean = false;
   result: any = null;
   error: string = '';
@@ -34,8 +33,7 @@ export class SearchComponent {
 
     const request: SearchRequest = {
       topic: this.topic,
-      limit: this.limit,
-      provider: this.provider
+      limit: this.limit
     };
 
     this.apiService.searchPapers(request).subscribe({

@@ -1,3 +1,4 @@
+import asyncio
 import httpx
 import arxiv
 from typing import List, Dict
@@ -8,6 +9,7 @@ logger = logging.getLogger(__name__)
 class PaperDiscoveryService:
     def __init__(self):
         self.semantic_scholar_base = "https://api.semanticscholar.org/graph/v1"
+        self.rate_limited = False
         
     async def search_semantic_scholar(self, query: str, limit: int = 10) -> List[Dict]:
         """Search papers using Semantic Scholar API"""
@@ -20,22 +22,30 @@ class PaperDiscoveryService:
                         "limit": limit,
                         "fields": "paperId,title,abstract,year,authors,openAccessPdf,citationCount,url"
                     },
+                    headers={"User-Agent": "ResearchPaperAssistant/1.0"},
                     timeout=30.0
                 )
                 
+                if response.status_code == 429:
+                    self.rate_limited = True
+                    logger.error("Semantic Scholar API error: 429")
+                    return []
+
                 if response.status_code == 200:
                     data = response.json()
                     papers = []
                     
                     for paper in data.get("data", []):
-                        if paper.get("openAccessPdf"):
+                        pdf_url = (paper.get("openAccessPdf") or {}).get("url")
+                        abstract = paper.get("abstract") or ""
+                        if pdf_url or abstract:
                             papers.append({
                                 "id": paper.get("paperId"),
                                 "title": paper.get("title"),
-                                "abstract": paper.get("abstract", ""),
+                                "abstract": abstract,
                                 "year": paper.get("year"),
                                 "authors": [author.get("name") for author in paper.get("authors", [])],
-                                "pdf_url": paper.get("openAccessPdf", {}).get("url"),
+                                "pdf_url": pdf_url,
                                 "citation_count": paper.get("citationCount", 0),
                                 "source_url": paper.get("url"),
                                 "source": "semantic_scholar"
@@ -53,6 +63,11 @@ class PaperDiscoveryService:
     async def search_arxiv(self, query: str, limit: int = 10) -> List[Dict]:
         """Search papers using arXiv API"""
         try:
+            client = arxiv.Client(
+                page_size=min(limit, 10),
+                delay_seconds=3.0,
+                num_retries=3
+            )
             search = arxiv.Search(
                 query=query,
                 max_results=limit,
@@ -60,7 +75,7 @@ class PaperDiscoveryService:
             )
             
             papers = []
-            for result in search.results():
+            for result in client.results(search):
                 papers.append({
                     "id": result.entry_id.split("/")[-1],
                     "title": result.title,
@@ -76,6 +91,8 @@ class PaperDiscoveryService:
             return papers
             
         except Exception as e:
+            if "429" in str(e):
+                self.rate_limited = True
             logger.error(f"Error searching arXiv: {str(e)}")
             return []
     
@@ -89,6 +106,7 @@ class PaperDiscoveryService:
         if "semantic_scholar" in sources:
             ss_papers = await self.search_semantic_scholar(query, limit)
             all_papers.extend(ss_papers)
+            await asyncio.sleep(1)
         
         if "arxiv" in sources:
             arxiv_papers = await self.search_arxiv(query, limit)

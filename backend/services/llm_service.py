@@ -12,7 +12,7 @@ class LLMService:
         
         if provider == "gemini":
             genai.configure(api_key=settings.GEMINI_API_KEY)
-            self.model = genai.GenerativeModel('gemini-pro')
+            self.model = genai.GenerativeModel(settings.GEMINI_MODEL)
         elif provider == "openai":
             self.openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
     

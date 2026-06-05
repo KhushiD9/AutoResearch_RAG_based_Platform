@@ -85,7 +85,7 @@
           placeholder="Ask a question about the papers..."
           class="question-input glass"
           rows="3"
-          (keyup.enter)="!$event.shiftKey && onAsk()"
+          (keyup.enter)="onEnterKey($event)"
           [disabled]="loading || !selectedCollection"
         ></textarea>
         <button 

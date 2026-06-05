@@ -31,7 +31,7 @@ class EmbeddingService:
             
             for text in texts:
                 result = genai.embed_content(
-                    model="models/embedding-001",
+                    model=settings.GEMINI_EMBEDDING_MODEL,
                     content=text,
                     task_type="retrieval_document"
                 )
@@ -61,7 +61,7 @@ class EmbeddingService:
         if self.provider == "gemini":
             try:
                 result = genai.embed_content(
-                    model="models/embedding-001",
+                    model=settings.GEMINI_EMBEDDING_MODEL,
                     content=query,
                     task_type="retrieval_query"
                 )

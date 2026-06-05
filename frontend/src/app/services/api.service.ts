@@ -1,11 +1,10 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface SearchRequest {
   topic: string;
   limit?: number;
-  provider?: string;
 }
 
 export interface QueryRequest {
@@ -13,7 +12,6 @@ export interface QueryRequest {
   question: string;
   n_results?: number;
   mode?: string;
-  provider?: string;
 }
 
 export interface HistoryEntry {
@@ -66,7 +64,10 @@ export class ApiService {
   }
 
   getHistory(limit?: number): Observable<any> {
-    const params = limit ? { limit: limit.toString() } : {};
+    let params = new HttpParams();
+    if (limit !== undefined) {
+      params = params.set('limit', limit.toString());
+    }
     return this.http.get(`${this.baseUrl}/history/list`, { params });
   }
 
