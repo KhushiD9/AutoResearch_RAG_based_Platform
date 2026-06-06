@@ -1,0 +1,15 @@
+.history-wrapper { max-width: 900px; margin: 0 auto; padding: 40px 24px; position: relative; z-index: 1; }
+.history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; h2 { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 400; } .clear-all { font-size: 12px; padding: 7px 16px; } }
+.empty-state { border-radius: 14px; padding: 32px; text-align: center; font-size: 13px; color: rgba(150,185,240,0.45); }
+.history-list { display: flex; flex-direction: column; gap: 14px; }
+.history-card {
+  border-radius: 14px; padding: 18px 20px;
+  .card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;
+    .mode-badge { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(60,100,255,0.14); border: 1px solid rgba(100,160,255,0.2); color: rgba(120,175,255,0.65); padding: 2px 8px; border-radius: 100px; }
+    .card-col { font-size: 11px; color: rgba(120,170,230,0.5); }
+    .card-time { font-size: 10px; color: rgba(110,155,220,0.38); margin-left: auto; }
+    .delete-btn { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 6px; padding: 0; color: rgba(200,100,100,0.5); &:hover { color: #ff8a8a; background: rgba(255,80,80,0.1); } }
+  }
+  .card-question { font-size: 14px; font-weight: 500; color: #dce9ff; margin-bottom: 8px; line-height: 1.4; }
+  .card-answer { font-size: 12px; color: rgba(160,195,245,0.55); line-height: 1.65; }
+}

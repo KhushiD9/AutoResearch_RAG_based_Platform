@@ -1,0 +1,170 @@
+<div class="search-wrapper">
+
+  <!-- Hero section -->
+  <div class="hero fade-in" *ngIf="!result && !loading">
+    <div class="hero-badge">Research Intelligence Platform</div>
+    <h1 class="hero-title">
+      <span class="gradient-text">Discover</span> &amp; Interrogate<br>
+      <em>Scientific Literature</em>
+    </h1>
+    <p class="hero-sub">
+      Enter a research topic to discover papers from Semantic Scholar and arXiv,
+      extract and embed their content, then ask grounded questions via a full RAG pipeline.
+    </p>
+  </div>
+
+  <!-- Search card -->
+  <div class="search-card glass fade-in">
+    <div class="search-bar-row">
+      <div class="search-input-wrap">
+        <span class="search-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+        </span>
+        <input
+          type="text"
+          [(ngModel)]="topic"
+          placeholder="e.g. anti-pinch controller, transformer attention, CRISPR delivery..."
+          class="search-input"
+          (keyup.enter)="onSearch()"
+          [disabled]="loading"
+        />
+        <button
+          class="btn-primary search-btn"
+          (click)="onSearch()"
+          [disabled]="loading || !topic.trim()">
+          {{ loading ? 'Searching...' : 'Search Papers' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="search-options">
+      <div class="option-group">
+        <label>Papers to fetch</label>
+        <select [(ngModel)]="limit" [disabled]="loading">
+          <option [value]="3">3 papers</option>
+          <option [value]="5">5 papers</option>
+          <option [value]="10">10 papers</option>
+        </select>
+      </div>
+      <div class="option-group">
+        <label>AI Model</label>
+        <select [disabled]="true">
+          <option>Claude Haiku (Anthropic)</option>
+        </select>
+      </div>
+      <div class="option-group">
+        <label>Embeddings</label>
+        <select [disabled]="true">
+          <option>all-MiniLM-L6-v2 (local)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Suggestions -->
+    <div class="suggestions" *ngIf="!result && !loading">
+      <span class="suggestions-label">Try:</span>
+      <button
+        *ngFor="let s of suggestions"
+        class="btn-ghost suggestion-chip"
+        (click)="useSuggestion(s)">
+        {{ s }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-banner glass-dark slide-in" *ngIf="error && !loading">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ error }}
+  </div>
+
+  <!-- Loading state -->
+  <div class="pipeline-progress glass fade-in" *ngIf="loading">
+    <div class="pipeline-header">
+      <div class="spinner"></div>
+      <span>Processing "{{ topic }}"</span>
+    </div>
+    <div class="pipeline-steps">
+      <div
+        *ngFor="let step of pipelineSteps; let i = index"
+        class="pipeline-step"
+        [class.active]="i === currentStep"
+        [class.done]="i < currentStep">
+        <div class="step-dot"></div>
+        <span>{{ step }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="results-section fade-in" *ngIf="result && !loading">
+
+    <div class="results-header">
+      <h2>Pipeline Complete</h2>
+      <button class="btn-ghost reset-btn" (click)="resetSearch()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+        </svg>
+        New Search
+      </button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card glass">
+        <div class="stat-val">{{ result.papers_found }}</div>
+        <div class="stat-lbl">Papers Found</div>
+      </div>
+      <div class="stat-card glass">
+        <div class="stat-val">{{ result.papers_processed }}</div>
+        <div class="stat-lbl">Processed</div>
+      </div>
+      <div class="stat-card glass">
+        <div class="stat-val">{{ totalChunks }}</div>
+        <div class="stat-lbl">Chunks Indexed</div>
+      </div>
+      <div class="stat-card glass">
+        <div class="stat-val" style="font-size:13px;">{{ result.collection_name }}</div>
+        <div class="stat-lbl">Collection ID</div>
+      </div>
+    </div>
+
+    <div class="paper-grid" *ngIf="result.processed_papers?.length">
+      <div
+        *ngFor="let paper of result.processed_papers; let i = index"
+        class="paper-card glass-light fade-up"
+        [style.animation-delay]="(i * 0.07) + 's'">
+        <div class="paper-card-line"></div>
+        <div class="paper-card-body">
+          <h4>{{ paper.title }}</h4>
+          <div class="paper-meta">
+            <span class="tag">{{ paper.chunks_count }} chunks</span>
+            <span class="tag">indexed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn-primary action-btn" (click)="navigateToChat()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        Ask Questions About These Papers
+      </button>
+    </div>
+  </div>
+
+  <!-- Feature cards (shown only on empty state) -->
+  <div class="feature-row fade-in" *ngIf="!result && !loading">
+    <div class="feature-card glass" *ngFor="let f of features">
+      <div class="feature-bar"></div>
+      <div class="feature-title">{{ f.title }}</div>
+      <div class="feature-desc">{{ f.desc }}</div>
+    </div>
+  </div>
+
+</div>

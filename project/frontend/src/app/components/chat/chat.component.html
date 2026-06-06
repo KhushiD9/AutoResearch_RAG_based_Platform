@@ -1,0 +1,168 @@
+<div class="chat-wrapper">
+
+  <!-- Sidebar -->
+  <aside class="sidebar glass">
+    <div class="sidebar-header">
+      <span class="sidebar-title">Collections</span>
+      <button class="sidebar-refresh btn-ghost" (click)="loadCollections()" title="Refresh">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="no-collections" *ngIf="collections.length === 0">
+      <p>No collections yet.</p>
+      <button class="btn-ghost go-search" (click)="navigateToSearch()">Search Papers</button>
+    </div>
+
+    <div class="collection-list" *ngIf="collections.length > 0">
+      <div
+        *ngFor="let c of collections"
+        class="collection-item"
+        [class.active]="c === selectedCollection"
+        (click)="selectCollection(c)">
+        <div class="col-dot"></div>
+        <span>{{ c }}</span>
+      </div>
+    </div>
+
+    <!-- Mode selector -->
+    <div class="mode-section" *ngIf="selectedCollection">
+      <div class="mode-label">Analysis Mode</div>
+      <div class="mode-grid">
+        <button
+          *ngFor="let m of modes"
+          class="mode-btn"
+          [class.active]="mode === m.value"
+          (click)="mode = m.value"
+          [title]="m.desc">
+          <span class="mode-icon">{{ m.icon }}</span>
+          <span>{{ m.label }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Suggested questions -->
+    <div class="suggestions-section" *ngIf="selectedCollection">
+      <div class="mode-label">Suggested Questions</div>
+      <div class="suggested-list">
+        <button
+          *ngFor="let q of suggestedQuestions"
+          class="suggested-q"
+          (click)="useSuggested(q)">
+          {{ q }}
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main chat area -->
+  <main class="chat-main glass">
+
+    <!-- Chat topbar -->
+    <div class="chat-topbar">
+      <div class="topbar-left">
+        <button class="btn-ghost back-btn" (click)="navigateToSearch()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5"/><path d="m12 5-7 7 7 7"/>
+          </svg>
+          Search
+        </button>
+        <div class="topbar-divider"></div>
+        <span class="topbar-col" *ngIf="selectedCollection">{{ selectedCollection }}</span>
+        <span class="topbar-col muted" *ngIf="!selectedCollection">Select a collection</span>
+      </div>
+      <div class="topbar-right">
+        <span class="mode-badge" *ngIf="selectedCollection">{{ activeModeName }}</span>
+        <button class="btn-ghost clear-btn" *ngIf="messages.length > 0" (click)="clearMessages()">
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="messages-area" #messagesContainer>
+
+      <!-- Welcome state -->
+      <div class="welcome-state fade-in" *ngIf="messages.length === 0 && !loading">
+        <div class="welcome-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-4h2v2h-2zm0-10h2v8h-2z"/>
+          </svg>
+        </div>
+        <h3>Ready to Answer</h3>
+        <p *ngIf="selectedCollection">Collection <strong>{{ selectedCollection }}</strong> is loaded. Ask anything about the indexed papers.</p>
+        <p *ngIf="!selectedCollection">Select a collection on the left, then ask questions.</p>
+      </div>
+
+      <!-- Message list -->
+      <ng-container *ngFor="let msg of messages; let i = index">
+
+        <!-- User message -->
+        <div class="msg-row user fade-in" *ngIf="msg.type === 'user'">
+          <div class="msg-bubble user">
+            <div class="msg-text">{{ msg.text }}</div>
+          </div>
+        </div>
+
+        <!-- AI message -->
+        <div class="msg-row ai fade-in" *ngIf="msg.type === 'ai'">
+          <div class="ai-avatar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+          </div>
+          <div class="msg-bubble ai">
+            <div class="msg-mode-badge" *ngIf="msg.mode && msg.mode !== 'standard'">{{ msg.mode | titlecase }}</div>
+            <div class="msg-text">{{ msg.text }}</div>
+            <div class="msg-sources" *ngIf="msg.sources?.length">
+              <div class="sources-label">Sources used</div>
+              <div *ngFor="let src of msg.sources; let si = index" class="source-chip">
+                <span class="source-num">{{ si + 1 }}</span>
+                <span class="source-title">{{ src.metadata?.title || 'Unknown paper' }}</span>
+              </div>
+            </div>
+            <div class="msg-time">{{ msg.time }}</div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Typing indicator -->
+      <div class="msg-row ai fade-in" *ngIf="loading">
+        <div class="ai-avatar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/>
+          </svg>
+        </div>
+        <div class="msg-bubble ai typing-bubble">
+          <div class="typing-indicator"><span></span><span></span><span></span></div>
+          <span class="typing-label">Claude is reading the papers...</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Input area -->
+    <div class="input-area">
+      <textarea
+        [(ngModel)]="question"
+        placeholder="{{ selectedCollection ? 'Ask anything about the indexed papers...' : 'Select a collection first...' }}"
+        class="question-input"
+        rows="2"
+        (keydown)="onKeyDown($event)"
+        [disabled]="loading || !selectedCollection"
+      ></textarea>
+      <button
+        class="btn-primary send-btn"
+        (click)="onAsk()"
+        [disabled]="loading || !question.trim() || !selectedCollection">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+
+  </main>
+</div>
