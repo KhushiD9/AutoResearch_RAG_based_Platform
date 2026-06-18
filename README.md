@@ -1,20 +1,7 @@
-# 🎯 AI-Powered Research Paper Assistant
+# AutoResearch: AI-Powered Research Paper Assistant
 
-> A complete, production-ready AI application that automatically discovers, analyzes, and answers questions from scientific papers using Retrieval-Augmented Generation (RAG)
+> An AI application that automatically discovers, analyzes, and answers questions from scientific papers using Retrieval-Augmented Generation (RAG)
 
-[![Status](https://img.shields.io/badge/status-production--ready-brightgreen)]()
-[![License](https://img.shields.io/badge/license-MIT-blue)]()
-[![Angular](https://img.shields.io/badge/Angular-17-red)]()
-[![FastAPI](https://img.shields.io/badge/FastAPI-latest-green)]()
-[![Python](https://img.shields.io/badge/Python-3.9+-blue)]()
-
-## ⚡ Quick Start
-
-**Want to get started immediately?** 
-
-👉 **[Open START_HERE.md](START_HERE.md)** - 10-minute quick start guide
-
-Or jump to:
 - [Installation Guide](INSTALLATION_GUIDE.md) - Detailed setup
 - [Quick Start](QUICKSTART.md) - 5-minute setup
 - [Features](FEATURES.md) - What it can do
@@ -286,15 +273,3 @@ The interface features a modern glassmorphism design with:
 - Custom embedding models
 - Multi-language support
 
-## License
-
-This project is open source and available under the MIT License.
-
-## Credits
-
-- Semantic Scholar API for paper discovery
-- arXiv for open-access papers
-- Google Gemini for embeddings and LLM
-- OpenAI for alternative LLM support
-- ChromaDB for vector storage
-- FastAPI and Angular communities
